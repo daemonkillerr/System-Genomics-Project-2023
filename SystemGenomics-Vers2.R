@@ -183,15 +183,12 @@ DE_test <- function(expr,
     return(c(pval = unname(pval), fc = unname(fc)))
   })), row.names = rownames(expr))
   padj <- p.adjust(pval_fc$pval, method = padj_method)
-  # sanity check to make sure that final models used have correct features
-  print(colnames(m1$model))
-  print(colnames(m0$model))
   return(data.frame(pval_fc, "padj" = padj)[,c("pval","padj","fc")])
 }
 
 #Ab hier update on github
 
-res_DE2 <- DE_test(expr = expr[meta_genes$expressed,],
+res_DE <- DE_test(expr = expr[meta_genes$expressed,],
                   cond = meta$condition,
                   covar = meta %>% dplyr::select(Organ),
                   padj_method = "holm") %>%
@@ -255,7 +252,7 @@ table(p.adjust(res_DESeq2$pvalue, method="bonferroni") < 0.1, res_DE %>% filter(
 fold_change_threshold <- 1  # Adjust this threshold as needed
 
 # get rid of NaNs
-logical_vector <- ifelse(is.na(res_DESeq2$log2FoldChange), FALSE, res_DESeq2$log2FoldChange > fold_change_threshold)
+#logical_vector <- ifelse(is.na(res_DESeq2$log2FoldChange), FALSE, res_DESeq2$log2FoldChange > fold_change_threshold)
 #res_DESeq2 <- res_DESeq2[logical_vector,]
 
 # there are NaNas in log2FoldChange. Make these 0s
