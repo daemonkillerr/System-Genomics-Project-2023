@@ -248,7 +248,6 @@ smoothScatter(-log10(res_DESeq2$pvalue), -log10(res_DE %>% filter(gene %in% rown
 
 table(p.adjust(res_DESeq2$pvalue, method="bonferroni") < 0.1, res_DE %>% filter(gene %in% rownames(res_DESeq2)) %>% pull(padj) < 0.1) 
 
-# not getting any overlap in identified genes between the two methods :/
 fold_change_threshold <- 1  # Adjust this threshold as needed
 
 # get rid of NaNs
@@ -279,10 +278,6 @@ plot(res_DESeq2$log2FoldChange, pch = 16, col = res_DESeq2$regulation)
 abline(h = c(-fold_change_threshold, fold_change_threshold), lty = 2, col = "red")
 legend("topright", legend = c("Up-regulated", "Down-regulated"), col = c("green", "black"), pch = 16)
 
-#FALSE  TRUE
-#FALSE 15657    72
-#TRUE     21    32
-
 #Grouping
 #Case-control
 #Up-/Downregulated
@@ -298,6 +293,7 @@ avg_expr <- sapply(sort(unique(meta$Organ)),
                    function(Organ) rowMeans(expr[,which(meta$Organ == Organ)])
                    )
 
+#skipped this and jst compared infected vs not ifected for now
 avg_expr_cond1 <- sapply(sort(unique(meta[group1_condition,])), 
                    function(Organ) rowMeans(expr[,which(meta$Organ == Organ)])
 )
@@ -357,27 +353,37 @@ par(mar=c(3,3,3,3))
 for(layer in unique(cl_DEG[hcl_DEG$order])) 
   boxplot(scaled_expr_DEG_list[[Organ]], main = paste0(layer, " (", nrow(scaled_expr_DEG_list[[Organ]]), ")"))
 
-#This doesn't work somehow
+#Getting just the upregulated genes into a txt but should be both up and downregulated. Just testing code
+# need < 3000 rows to work in DAVID so should said the thresholding above higher
+up_genes_data <- meta_genes[meta_genes$ensembl_gene_id_version %in% upregulated_genes, "ensembl_gene_id"]
+write.table(up_genes_data, file = "genes_C2.txt", quote = F, row.names = F, col.names = F)
 
-write.table(meta_genes[meta_genes$ensembl_gene_id_version %in% names(which(cl_DEG==2)), "ensembl_gene_id"], file = "genes_C2.txt", quote = F, row.names = F, col.names = F)
+#write.table(meta_genes[meta_genes$ensembl_gene_id_version %in% names(which(res_DESeq2$regulation %in% c("Up-regulated"))), "ensembl_gene_id"], file = "genes_C2.txt", quote = F, row.names = F, col.names = F)
 write.table(meta_genes[meta_genes$expressed, "ensembl_gene_id"], file = "genes_expressed.txt", quote = F, row.names = F, col.names = F)
 
-DE_L4 <- DE_test(expr = expr[meta_genes$expressed,], cond = meta$Organ == "L4", ctrl = "FALSE", covar = meta %>% dplyr::select(condition)) %>% 
-tibble::rownames_to_column("gene")
+#DE_L4 <- DE_test(expr = expr[meta_genes$expressed,], cond = meta$condition == "brain", ctrl = "FALSE", covar = meta %>% dplyr::select(condition)) %>% 
+#tibble::rownames_to_column("gene")
 
-scores <- setNames(sign(log(DE_L4$fc)) * (-log10(DE_L4$pval)), setNames(meta_genes$ensembl_gene_id, meta_genes$ensembl_gene_id_version)[DE_L4$gene])
+#scores <- setNames(sign(log(DE_L4$fc)) * (-log10(DE_L4$pval)), setNames(meta_genes$ensembl_gene_id, meta_genes$ensembl_gene_id_version)[DE_L4$gene])
+#scores_ordered <- sort(scores, decreasing=T)
+
+scores <- setNames(sign(log(res_DE$fc)) * (-log10(res_DE$pval)), setNames(meta_genes$ensembl_gene_id, meta_genes$ensembl_gene_id_version)[res_DE$gene])
 scores_ordered <- sort(scores, decreasing=T)
 
+#install.packages("msigdbr")
 library(msigdbr)
-genesets_celltype <- msigdbr(species = "Mus mucus", category = "C8")
+# Using C7 since it is genes in immune pathways. Could also use H for hallmark groupings
+genesets_celltype <- msigdbr(species = "Mus musculus", category = "C7")
 genesets_celltype_list <- tapply(genesets_celltype$ensembl_gene, genesets_celltype$gs_name, list)
+
+#BiocManager::install("fgsea")
 library(fgsea)
 fgsea_kegg <- fgsea(pathways = genesets_celltype_list, stats = scores_ordered,
 minSize = 15, maxSize = 500)
 
 fgsea_kegg[order(NES,decreasing=T),][1:10,1:7] 
 
-plotEnrichment(genesets_celltype_list[["MANNO_MIDBRAIN_NEUROTYPES_HNBML5"]], scores_ordered) + labs(title="hNbML5 GABAergic neurons")
+plotEnrichment(genesets_celltype_list[["ZHONG_PFC_C2_THY1_POS_OPC"]], scores_ordered) + labs(title="ZHONG pathways")
 
 fgsea_kegg[order(NES,decreasing=F),][1:10,1:7] 
 
