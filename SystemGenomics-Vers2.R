@@ -293,87 +293,73 @@ avg_expr <- sapply(sort(unique(meta$Organ)),
                    function(Organ) rowMeans(expr[,which(meta$Organ == Organ)])
                    )
 
-#skipped this and jst compared infected vs not ifected for now
-avg_expr_cond1 <- sapply(sort(unique(meta[group1_condition,])), 
-                   function(Organ) rowMeans(expr[,which(meta$Organ == Organ)])
-)
-avg_expr_cond2 <- sapply(meta[group2_condition,], 
-                         function(Organ) rowMeans(expr[,which(meta$Organ == Organ)])
-)
-avg_expr_cond3 <- sapply(meta[group3_condition,], 
-                         function(Organ) rowMeans(expr[,which(meta$Organ == Organ)])
-)
-avg_expr_cond4 <- sapply(meta[group4_condition,], 
-                         function(Organ) rowMeans(expr[,which(meta$Organ == Organ)])
-)
-
 #All are maximally expressed in the brain
-max_layer_DEG <- setNames(colnames(avg_expr)[apply(avg_expr[DEG,], 1, which.max)], DEG)
-avg_expr_DEG_list <- tapply(names(max_layer_DEG), max_layer_DEG, function(x) avg_expr[x,])
-
-scaled_expr_DEG_list <- lapply(avg_expr_DEG_list, function(x) t(scale(t(x))))
-layout(matrix(1, nrow = 2))
-par(mar=c(3,3,3,3))
-Organ=c('Brain','Liver')
-for(i in 1:2) boxplot(avg_expr[,i], main = paste0(Organ[i], " (", nrow(scaled_expr_DEG_list), ")"))
-boxplot(avg_expr[,1], main = paste0(Organ[1], " (", nrow(scaled_expr_DEG_list), ")"))
-boxplot(avg_expr[,2], main = paste0(Organ[2], " (", nrow(scaled_expr_DEG_list), ")"))
-
-
-hcl_spearman <- hclust(as.dist(1 - corr_spearman))
-avg_expr <- sapply(sort(unique(meta$Organ)), function(Organ) rowMeans(expr[,which(meta$Organ == Organ)]))
-corr_DEG <- cor(avg_expr[res_DE$gene[res_DE$DE],], method = "spearman")
-mgi_DEG <- hclust(as.dist(1 - corr_DEG), method = "complete")
-#Doesn't work
-plot(hcl_spearman, labels = FALSE)
+# max_layer_DEG <- setNames(colnames(avg_expr)[apply(avg_expr[DEG,], 1, which.max)], DEG)
+# avg_expr_DEG_list <- tapply(names(max_layer_DEG), max_layer_DEG, function(x) avg_expr[x,])
+# 
+# scaled_expr_DEG_list <- lapply(avg_expr_DEG_list, function(x) t(scale(t(x))))
+# layout(matrix(1, nrow = 2))
+# par(mar=c(3,3,3,3))
+# Organ=c('Brain','Liver')
+# for(i in 1:2) boxplot(avg_expr[,i], main = paste0(Organ[i], " (", nrow(scaled_expr_DEG_list), ")"))
+# boxplot(avg_expr[,1], main = paste0(Organ[1], " (", nrow(scaled_expr_DEG_list), ")"))
+# boxplot(avg_expr[,2], main = paste0(Organ[2], " (", nrow(scaled_expr_DEG_list), ")"))
 
 
-library(gplots)
-heatmap.2(corr_DEG, Rowv = as.dendrogram(mgi_DEG), Colv = as.dendrogram(mgi_DEG), trace = "none", scale = "none", labRow = NA, labCol = NA)
+# hcl_spearman <- hclust(as.dist(1 - corr_spearman))
+# avg_expr <- sapply(sort(unique(meta$Organ)), function(Organ) rowMeans(expr[,which(meta$Organ == Organ)]))
+# corr_DEG <- cor(avg_expr[res_DE$gene[res_DE$DE],], method = "spearman")
+# mgi_DEG <- hclust(as.dist(1 - corr_DEG), method = "complete")
+# #Doesn't work
+# plot(hcl_spearman, labels = FALSE)
+# 
+# 
+# library(gplots)
+# heatmap.2(corr_DEG, Rowv = as.dendrogram(mgi_DEG), Colv = as.dendrogram(mgi_DEG), trace = "none", scale = "none", labRow = NA, labCol = NA)
+# 
+# install.packages("viridis")
+# library(viridis)
+# heatmap.2(corr_DEG, Rowv = as.dendrogram(mgi_DEG), Colv = as.dendrogram(mgi_DEG), trace = "none", scale = "none", labRow = NA, labCol = NA, col = viridis)
+# 
+# cl_DEG <- cutree(mgi_DEG, k = 15)
+# heatmap.2(corr_DEG, Rowv = as.dendrogram(mgi_DEG), Colv = as.dendrogram(mgi_DEG), trace = "none", scale = "none", labRow = NA, labCol = NA, col = viridis, ColSideColors = rainbow(15)[cl_DEG])
+# 
+# avg_expr <- sapply(sort(unique(meta$Organ)), function(Organ) rowMeans(expr[,which(meta$Organ == Organ)]))
+# avg_expr_DEG_list <- tapply(names(cl_DEG), cl_DEG, function(x) avg_expr[x,])
+# scaled_expr_DEG_list <- lapply(avg_expr_DEG_list, function(x) t(scale(t(x))))
+# layout(matrix(1:15, nrow = 3, byrow = T))
+# par(mar=c(3,3,3,3))
+# for(cl in 1:15) 
+#   boxplot(scaled_expr_DEG_list[[cl]], main = paste0(cl, " (", nrow(scaled_expr_DEG_list[[cl]]), ")"))
+# 
+# unique(cl_DEG[hcl_DEG$order])
+# 
+# layout(matrix(1:15, nrow = 3, byrow = T))
+# par(mar=c(3,3,3,3))
+# for(layer in unique(cl_DEG[hcl_DEG$order])) 
+#  boxplot(scaled_expr_DEG_list[[Organ]], main = paste0(layer, " (", nrow(scaled_expr_DEG_list[[Organ]]), ")"))
 
-install.packages("viridis")
-library(viridis)
-heatmap.2(corr_DEG, Rowv = as.dendrogram(mgi_DEG), Colv = as.dendrogram(mgi_DEG), trace = "none", scale = "none", labRow = NA, labCol = NA, col = viridis)
-
-cl_DEG <- cutree(mgi_DEG, k = 15)
-heatmap.2(corr_DEG, Rowv = as.dendrogram(mgi_DEG), Colv = as.dendrogram(mgi_DEG), trace = "none", scale = "none", labRow = NA, labCol = NA, col = viridis, ColSideColors = rainbow(15)[cl_DEG])
-
-avg_expr <- sapply(sort(unique(meta$Organ)), function(Organ) rowMeans(expr[,which(meta$Organ == Organ)]))
-avg_expr_DEG_list <- tapply(names(cl_DEG), cl_DEG, function(x) avg_expr[x,])
-scaled_expr_DEG_list <- lapply(avg_expr_DEG_list, function(x) t(scale(t(x))))
-layout(matrix(1:15, nrow = 3, byrow = T))
-par(mar=c(3,3,3,3))
-for(cl in 1:15) 
-  boxplot(scaled_expr_DEG_list[[cl]], main = paste0(cl, " (", nrow(scaled_expr_DEG_list[[cl]]), ")"))
-
-unique(cl_DEG[hcl_DEG$order])
-
-layout(matrix(1:15, nrow = 3, byrow = T))
-par(mar=c(3,3,3,3))
-for(layer in unique(cl_DEG[hcl_DEG$order])) 
-  boxplot(scaled_expr_DEG_list[[Organ]], main = paste0(layer, " (", nrow(scaled_expr_DEG_list[[Organ]]), ")"))
-
-#Getting just the upregulated genes into a txt but should be both up and downregulated. Just testing code
 # need < 3000 rows to work in DAVID so should said the thresholding above higher
-up_genes_data <- meta_genes[meta_genes$ensembl_gene_id_version %in% upregulated_genes, "ensembl_gene_id"]
-write.table(up_genes_data, file = "genes_C2.txt", quote = F, row.names = F, col.names = F)
+combined_genes <- c(upregulated_genes, downregulated_genes)
+DE_genes_data <- meta_genes[meta_genes$ensembl_gene_id_version %in% combined_genes, "ensembl_gene_id"]
 
-#write.table(meta_genes[meta_genes$ensembl_gene_id_version %in% names(which(res_DESeq2$regulation %in% c("Up-regulated"))), "ensembl_gene_id"], file = "genes_C2.txt", quote = F, row.names = F, col.names = F)
+write.table(DE_genes_data, file = "genes_C2.txt", quote = F, row.names = F, col.names = F)
+
 write.table(meta_genes[meta_genes$expressed, "ensembl_gene_id"], file = "genes_expressed.txt", quote = F, row.names = F, col.names = F)
 
-#DE_L4 <- DE_test(expr = expr[meta_genes$expressed,], cond = meta$condition == "brain", ctrl = "FALSE", covar = meta %>% dplyr::select(condition)) %>% 
-#tibble::rownames_to_column("gene")
-
-#scores <- setNames(sign(log(DE_L4$fc)) * (-log10(DE_L4$pval)), setNames(meta_genes$ensembl_gene_id, meta_genes$ensembl_gene_id_version)[DE_L4$gene])
-#scores_ordered <- sort(scores, decreasing=T)
 
 scores <- setNames(sign(log(res_DE$fc)) * (-log10(res_DE$pval)), setNames(meta_genes$ensembl_gene_id, meta_genes$ensembl_gene_id_version)[res_DE$gene])
 scores_ordered <- sort(scores, decreasing=T)
 
+#instead calcuating with the DESeq2 model
+scores <- setNames(sign(res_DESeq2$log2FoldChange) * (-log10(res_DESeq2$pvalue)), setNames(meta_genes$ensembl_gene_id, meta_genes$ensembl_gene_id_version)[rownames(res_DESeq2)])
+scores_ordered <- sort(scores, decreasing=T)
+
+
 #install.packages("msigdbr")
 library(msigdbr)
 # Using C7 since it is genes in immune pathways. Could also use H for hallmark groupings
-genesets_celltype <- msigdbr(species = "Mus musculus", category = "C7")
+genesets_celltype <- msigdbr(species = "Mus musculus", category = "H")
 genesets_celltype_list <- tapply(genesets_celltype$ensembl_gene, genesets_celltype$gs_name, list)
 
 #BiocManager::install("fgsea")
@@ -383,7 +369,31 @@ minSize = 15, maxSize = 500)
 
 fgsea_kegg[order(NES,decreasing=T),][1:10,1:7] 
 
-plotEnrichment(genesets_celltype_list[["ZHONG_PFC_C2_THY1_POS_OPC"]], scores_ordered) + labs(title="ZHONG pathways")
+#pick a gene from above to go here
+plotEnrichment(genesets_celltype_list[["ZHONG_PFC_C2_THY1_POS_OPC"]], scores_ordered) + labs(title="ZHONG pathway")
 
 fgsea_kegg[order(NES,decreasing=F),][1:10,1:7] 
+
+
+# lets do a bunch of this again but look for DE differences in liver vs brain (so we now consider a model with an interaction term)
+dds <- DESeqDataSetFromTximport(txi, colData = meta, 
+                                design = ~ Organ + condition + Organ:condition)
+
+dds_filtered <- dds[intersect(rownames(expr)[meta_genes$expressed], rownames(dds)),]
+dds_filtered <- DESeq(dds_filtered, test="LRT", reduced= ~ Organ + condition)
+res_DESeq2 <- results(dds_filtered)
+summary(res_DESeq2)
+
+
+fold_change_threshold <- 1  # Adjust this threshold as needed
+scores <- setNames(sign(res_DESeq2$log2FoldChange) * (-log10(res_DESeq2$pvalue)), setNames(meta_genes$ensembl_gene_id, meta_genes$ensembl_gene_id_version)[rownames(res_DESeq2)])
+scores_ordered <- sort(scores, decreasing=T)
+genesets_celltype <- msigdbr(species = "Mus musculus", category = "H")
+genesets_celltype_list <- tapply(genesets_celltype$ensembl_gene, genesets_celltype$gs_name, list)
+fgsea_kegg <- fgsea(pathways = genesets_celltype_list, stats = scores_ordered,
+                    minSize = 15, maxSize = 500)
+
+fgsea_kegg[order(NES,decreasing=T),][1:10,1:7] 
+fgsea_kegg[order(NES,decreasing=F),][1:10,1:7] 
+#Some of the pathways we get here eg HALLMARK_COAGULATION make sense
 
