@@ -155,6 +155,8 @@ library(pbapply)
 #   return(exp(max(avg_layers) - min(avg_layers)))
 # })
 
+meta$condition <- factor(meta$condition, levels = c("steady_state", "LCMVd8")) #TODO see if I reverse the ordering
+
 DE_test <- function(expr,
                     cond,
                     ctrl = NULL,
@@ -239,6 +241,9 @@ cor(res_DESeq2$padj,
       pull(padj), method="spearman", use="complete.obs")
 
 layout(matrix(1, nrow=1))
+# Adjusting the margins (if necessary)
+# par(mar=c(5.1, 4.1, 4.1, 2.1)) # default
+par(mar=c(5.1, 4.1, 4.1, 2.1) + 0.1) # Increase if labels are cut off
 plot(-log10(res_DESeq2$pvalue), 
      -log10(res_DE %>% filter(gene %in% rownames(res_DESeq2)) %>% pull(pval)),
      xlab = "-log10(pval DESeq2)", ylab = "-log10(pval DE)", pch=16)
